@@ -6,8 +6,7 @@ namespace _2048Game
     {
         static void Main(string[] args)
         {
-            Game game = new Game();
-            game.Run();
+            GameManager.Instance.Run();
         }
     }
 }
