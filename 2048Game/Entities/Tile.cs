@@ -1,17 +1,25 @@
 namespace _2048Game.Entities
 {
-    public class Tile : Entity
+    public abstract class Tile : Entity
     {
         public int Value { get; set; }
-        
+        public int PositionX { get; set; }
+        public int PositionY { get; set; }
+
+        public abstract void OnMerge();
+        public abstract ConsoleColor GetColor();
+        public abstract string GetSymbol();
+
         public override void Update()
         {
-            // здесь могла быть ваша логика
+
         }
-        
+
         public override void Draw()
         {
-            
+            Console.ForegroundColor = GetColor();
+            Console.Write(GetSymbol());
+            Console.ResetColor();
         }
     }
 }
