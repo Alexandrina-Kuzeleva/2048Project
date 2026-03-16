@@ -8,9 +8,16 @@ namespace _2048Game.Entities
             Name = $"NumberTile_{Value}";
         }
 
+        private NumberTile(int value, string name)
+        {
+            Value = value;
+            Name = name;
+        }
+
         public override void OnMerge()
         {
             Value *= 2;
+            Name = $"NumberTile_{Value}";
             Console.Beep(200, 50); // звук слияния плитки 
         }
 
@@ -36,6 +43,15 @@ namespace _2048Game.Entities
         public override string GetSymbol()
         {
             return Value.ToString().PadLeft(4);
+        }
+
+        protected override Tile CloneInternal()
+        {
+            NumberTile clone = new NumberTile(this.Value, this.Name + " (clone)");
+
+            CopyBaseProperties(clone);
+
+            return clone;
         }
     }
 }
