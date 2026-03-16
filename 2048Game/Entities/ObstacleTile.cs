@@ -35,7 +35,6 @@ namespace _2048Game.Entities
                 Console.WriteLine($"█ Препятствие повреждено! Осталось здоровья: {health} █");
             }
 
-            Console.Beep(100, 100);
         }
 
         public override ConsoleColor GetColor()

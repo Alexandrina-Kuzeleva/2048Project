@@ -24,7 +24,6 @@ namespace _2048Game.Entities
         public override void OnMerge()
         {
             isActivated = true;
-            Console.Beep(400, 100);
             Console.WriteLine("★ Бонус активирован! ★");
         }
 

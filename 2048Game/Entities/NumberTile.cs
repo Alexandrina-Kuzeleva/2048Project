@@ -18,7 +18,6 @@ namespace _2048Game.Entities
         {
             Value *= 2;
             Name = $"NumberTile_{Value}";
-            Console.Beep(200, 50); // звук слияния плитки 
         }
 
         public override ConsoleColor GetColor()
