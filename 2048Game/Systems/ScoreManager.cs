@@ -2,18 +2,33 @@ namespace _2048Game.Systems
 {
     public class ScoreManager
     {
-        public int CurrentScore { get; set; }
-        public int HighScore { get; set; }
+        private int currentScore;
+        private int highScore;
+
+        public int CurrentScore => currentScore;
+        public int HighScore => highScore;
 
         public ScoreManager()
         {
-            CurrentScore = 0;
-            HighScore = 0;
+            currentScore = 0;
+            highScore = 0;
         }
 
         public void AddPoints(int points)
         {
-            // метод для добавления поинтов
+            if (points > 0)
+            {
+                currentScore += points;
+                if (currentScore > highScore)
+                {
+                    highScore = currentScore;
+                }
+            }
+        }
+
+        public void ResetScore()
+        {
+            currentScore = 0;
         }
     }
 }
