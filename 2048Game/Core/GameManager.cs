@@ -54,6 +54,8 @@ namespace _2048Game.Core
 
             TilePrototypeDemo.DemonstratePrototype();
 
+            DecoratorDemo.DemonstrateDecorator();
+
             Console.WriteLine("\n========================================");
             Console.WriteLine("CONTROLS:");
             Console.WriteLine("  ESC - Exit");
