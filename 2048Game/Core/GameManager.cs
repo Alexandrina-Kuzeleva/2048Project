@@ -56,6 +56,8 @@ namespace _2048Game.Core
 
             DecoratorDemo.DemonstrateDecorator();
 
+            AdapterDemo.DemonstrateAdapterPattern();
+
             Console.WriteLine("\n========================================");
             Console.WriteLine("CONTROLS:");
             Console.WriteLine("  ESC - Exit");
