@@ -206,11 +206,13 @@ namespace _2048Game.Core
 
         private void UpdateLastAddedTile()
         {
-            for (int i = 0; i < MapSize; i++)
+            if (board == null) return;
+
+            for (int row = 0; row < MapSize; row++)
             {
-                for (int j = 0; j < MapSize; j++)
+                for (int col = 0; col < MapSize; col++)
                 {
-                    var tile = board.GetCell(i, j);
+                    var tile = board.GetCell(row, col);
                     if (tile != null && tile.Value != 0)
                     {
                         lastAddedTile = tile;
