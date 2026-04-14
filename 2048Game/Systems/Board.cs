@@ -56,33 +56,53 @@ namespace _2048Game.Systems
             }
         }
 
-        public void AddRandomTile()
+        private List<(int row, int col)> FindEmptyCells()
         {
-            List<(int, int)> emptyCells = new List<(int, int)>();
+            var emptyCells = new List<(int row, int col)>();
 
-            for (int i = 0; i < size; i++)
+            for (int row = 0; row < size; row++)
             {
-                for (int j = 0; j < size; j++)
+                for (int col = 0; col < size; col++)
                 {
-                    if (grid[i, j].Value == 0)
+                    if (grid[row, col].Value == 0)
                     {
-                        emptyCells.Add((i, j));
+                        emptyCells.Add((row, col));
                     }
                 }
             }
 
-            if (emptyCells.Count > 0)
-            {
-                var (x, y) = emptyCells[random.Next(emptyCells.Count)];
+            return emptyCells;
+        }
 
-                int factoryIndex = random.Next(availableFactories.Count);
-                TileFactory factory = availableFactories[factoryIndex];
+        private (int row, int col)? GetRandomEmptyCell()
+        {
+            var emptyCells = FindEmptyCells();
 
-                Tile newTile = factory.CreateTileAtPosition(x, y);
-                grid[x, y] = newTile;
+            if (emptyCells.Count == 0)
+                return null;
 
-                Console.WriteLine($"Added {newTile.GetType().Name} at ({x}, {y}) with value {newTile.Value}");
-            }
+            return emptyCells[random.Next(emptyCells.Count)];
+        }
+
+        private TileFactory GetRandomFactory()
+        {
+            return availableFactories[random.Next(availableFactories.Count)];
+        }
+
+        public void AddRandomTile()
+        {
+            var emptyCell = GetRandomEmptyCell();
+
+            if (emptyCell == null)
+                return;
+
+            var (row, col) = emptyCell.Value;
+            TileFactory factory = GetRandomFactory();
+
+            Tile newTile = factory.CreateTileAtPosition(row, col);
+            grid[row, col] = newTile;
+
+            Console.WriteLine($"Added {newTile.GetType().Name} at ({row}, {col}) with value {newTile.Value}");
         }
 
         public Tile? GetCell(int x, int y)
