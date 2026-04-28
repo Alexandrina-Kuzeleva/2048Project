@@ -7,6 +7,7 @@ namespace _2048Game.Entities
         public int Value { get; set; }
         public int PositionX { get; set; }
         public int PositionY { get; set; }
+        public bool IsMerged { get; set; }
 
         public abstract void OnMerge();
         public abstract ConsoleColor GetColor();

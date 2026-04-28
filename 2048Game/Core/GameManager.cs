@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _2048Game.Systems;
 using _2048Game.Entities;
 using _2048Game.Factories;
+using _2048Game.UI;
 
 namespace _2048Game.Core
 {
@@ -12,24 +13,26 @@ namespace _2048Game.Core
 
         public int MapSize { get; set; }
         public Difficulty GameDifficulty { get; set; }
-        public bool IsSoundEnabled { get; set; }
 
-        private Board? board;
-        private List<Tile> clonedTiles;
-        private Tile? lastAddedTile;
+        private Board? _board;
         private ScoreManager _scoreManager;
         private GameMovementContext _movementContext;
+        private ConsoleHUD? _hud;
+        private BoardRenderer? _boardRenderer;
+
+        private List<Tile> _clonedTiles;
+        private Tile? _lastAddedTile;
 
         private GameManager()
         {
             MapSize = 4;
             GameDifficulty = Difficulty.Normal;
-            IsSoundEnabled = true;
 
-            clonedTiles = new List<Tile>();
-            lastAddedTile = null;
             _scoreManager = new ScoreManager();
             _movementContext = new GameMovementContext(_scoreManager);
+            _clonedTiles = new List<Tile>();
+            _lastAddedTile = null;
+
         }
 
         public static GameManager Instance
@@ -46,37 +49,196 @@ namespace _2048Game.Core
 
         public void Run()
         {
-            Console.WriteLine("========================================");
-            Console.WriteLine("   2048 GAME - FACTORY METHOD DEMO     ");
-            Console.WriteLine("========================================");
+            while (true)
+            {
+                ShowMainMenu();
+                var choice = Console.ReadKey(true).Key;
+
+                switch (choice)
+                {
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        StartGame();
+                        break;
+
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        ShowDemosMenu();
+                        break;
+
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        ShowSettingsMenu();
+                        break;
+
+                    case ConsoleKey.Escape:
+                        Console.WriteLine("\nGoodbye!");
+                        return;
+
+                    default:
+                        Console.WriteLine("\nInvalid choice. Press any key...");
+                        Console.ReadKey(true);
+                        break;
+                }
+            }
+        }
+
+        private void ShowMainMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("2048 Game");
+            Console.WriteLine();
+            Console.WriteLine("MAIN MENU");
+            Console.WriteLine();
+            Console.WriteLine("  [1] Start Game");
+            Console.WriteLine("  [2] View Pattern Demonstrations");
+            Console.WriteLine("  [3] Settings");
+            Console.WriteLine("  [ESC] Exit");
+            Console.WriteLine();
+            Console.Write("Select option: ");
+        }
+
+        private void ShowDemosMenu()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Pattern Demonstrations");
+                Console.WriteLine();
+                Console.WriteLine("  [1] Factory Method");
+                Console.WriteLine("  [2] Prototype");
+                Console.WriteLine("  [3] Adapter");
+                Console.WriteLine("  [4] Strategy");
+                Console.WriteLine("  [5] Events");
+                Console.WriteLine("  [0] Run All Demonstrations");
+                Console.WriteLine("  [ESC] Back to Main Menu");
+                Console.WriteLine();
+                Console.Write("Select demo: ");
+
+                var key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        DemoRunner.RunFactoryMethodDemo();
+                        break;
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        DemoRunner.RunPrototypeDemo();
+                        break;
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        DemoRunner.RunAdapterDemo();
+                        break;
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
+                        DemoRunner.RunStrategyDemo();
+                        break;
+                    case ConsoleKey.D5:
+                    case ConsoleKey.NumPad5:
+                        DemoRunner.RunEventsDemo();
+                        break;
+                    case ConsoleKey.D0:
+                    case ConsoleKey.NumPad0:
+                        DemoRunner.RunAllDemos();
+                        break;
+                    case ConsoleKey.Escape:
+                        return;
+                }
+
+                Console.WriteLine("\nPress any key to continue...");
+                Console.ReadKey(true);
+            }
+        }
+
+        private void ShowSettingsMenu()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Settings");
+                Console.WriteLine();
+                Console.WriteLine($"  [1] Board Size: {MapSize}x{MapSize}");
+                Console.WriteLine($"  [2] Difficulty: {GameDifficulty}");
+                Console.WriteLine($"  [3] Reset to Defaults");
+                Console.WriteLine($"  [ESC] Back to Main Menu");
+                Console.WriteLine();
+                Console.Write("Select option: ");
+
+                var key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        Console.Write("\nEnter board size (3-8): ");
+                        if (int.TryParse(Console.ReadLine(), out int newSize) && newSize >= 3 && newSize <= 8)
+                        {
+                            MapSize = newSize;
+                            Console.WriteLine($"Board size set to {MapSize}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid size. Must be 3-8.");
+                        }
+                        break;
+
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        Console.WriteLine("\nSelect difficulty: 1=Easy, 2=Normal, 3=Hard");
+                        var diffKey = Console.ReadKey(true).Key;
+                        GameDifficulty = diffKey switch
+                        {
+                            ConsoleKey.D1 or ConsoleKey.NumPad1 => Difficulty.Easy,
+                            ConsoleKey.D3 or ConsoleKey.NumPad3 => Difficulty.Hard,
+                            _ => Difficulty.Normal
+                        };
+                        Console.WriteLine($"Difficulty set to {GameDifficulty}");
+                        break;
+
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        MapSize = 4;
+                        GameDifficulty = Difficulty.Normal;
+                        Console.WriteLine("Settings restored to defaults.");
+                        break;
+
+                    case ConsoleKey.Escape:
+                        return;
+                }
+
+                Console.WriteLine("\nPress any key to continue...");
+                Console.ReadKey(true);
+            }
+        }
+
+        private void StartGame()
+        {
+            Console.Clear();
+            Console.WriteLine("Starting game...");
             Console.WriteLine($"Map Size: {MapSize}x{MapSize}");
             Console.WriteLine($"Difficulty: {GameDifficulty}");
-            Console.WriteLine($"Sound: {(IsSoundEnabled ? "ON" : "OFF")}");
-            Console.WriteLine("========================================");
+            Console.WriteLine("\nPress any key to begin...");
+            Console.ReadKey(true);
 
-            DemonstrateFactoryMethod();
+            _board = new Board();
+            _board.SetScoreManager(_scoreManager);
+            _hud = new ConsoleHUD(_scoreManager);
+            _hud.SetBoard(_board);
 
-            TilePrototypeDemo.DemonstratePrototype();
+            _boardRenderer = new BoardRenderer(_board);
 
-            DecoratorDemo.DemonstrateDecorator();
+            _scoreManager.ResetScore();
+            _clonedTiles.Clear();
+            _lastAddedTile = null;
 
-            AdapterDemo.DemonstrateAdapterPattern();
-
-            DemonstrateStrategyPattern();
-
-            Console.WriteLine("\n========================================");
-            Console.WriteLine("CONTROLS:");
-            Console.WriteLine("  ESC - Exit");
-            Console.WriteLine("  SPACE - Add random tile");
-            Console.WriteLine("  C - Clone the last added tile (demonstrate Prototype)");
-            Console.WriteLine("  D - Display all clones");
-            Console.WriteLine("========================================\n");
-
-            board = new Board();
+            RefreshDisplay();
 
             bool isRunning = true;
+            bool gameOver = false;
 
-            while (isRunning)
+            while (isRunning && !gameOver)
             {
                 if (Console.KeyAvailable)
                 {
@@ -89,24 +251,29 @@ namespace _2048Game.Core
                             break;
 
                         case ConsoleKey.Spacebar:
-                            board.AddRandomTile();
+                            _board.AddRandomTile();
                             UpdateLastAddedTile();
-                            Console.WriteLine($"Current board state - Press SPACE again");
+                            RefreshDisplay();
                             break;
 
-                        case ConsoleKey.C:
-                            if (lastAddedTile != null)
-                            {
-                                DemonstrateCloning(lastAddedTile);
-                            }
-                            else
-                            {
-                                Console.WriteLine("No tile to clone. Press SPACE first to add a tile.");
-                            }
+                        case ConsoleKey.UpArrow:
+                            _board.Move(Direction.Up);
+                            RefreshDisplay();
                             break;
 
-                        case ConsoleKey.D:
-                            DisplayAllClones();
+                        case ConsoleKey.DownArrow:
+                            _board.Move(Direction.Down);
+                            RefreshDisplay();
+                            break;
+
+                        case ConsoleKey.LeftArrow:
+                            _board.Move(Direction.Left);
+                            RefreshDisplay();
+                            break;
+
+                        case ConsoleKey.RightArrow:
+                            _board.Move(Direction.Right);
+                            RefreshDisplay();
                             break;
 
                         case ConsoleKey.D1:
@@ -130,204 +297,118 @@ namespace _2048Game.Core
                             break;
 
                         case ConsoleKey.S:
-                            Console.WriteLine($"\nCurrent Strategy: {_movementContext.GetCurrentStrategyName()}");
-                            Console.WriteLine($"Total moves: {_movementContext.GetMoveCount()}");
-                            Console.WriteLine($"Current Score: {_scoreManager.CurrentScore}");
-                            Console.WriteLine($"High Score: {_scoreManager.HighScore}\n");
+                            ShowGameStatus();
                             break;
 
-                        case ConsoleKey.UpArrow:
-                            _movementContext.ExecuteMovement(board, Direction.Up);
+                        case ConsoleKey.C:
+                            if (_lastAddedTile != null)
+                            {
+                                DemonstrateCloning(_lastAddedTile);
+                                RefreshDisplay();
+                            }
+                            else
+                            {
+                                Console.WriteLine("No tile to clone. Press SPACE first.");
+                            }
                             break;
 
-                        case ConsoleKey.DownArrow:
-                            _movementContext.ExecuteMovement(board, Direction.Down);
+                        case ConsoleKey.D:
+                            DisplayAllClones();
                             break;
+                    }
 
-                        case ConsoleKey.LeftArrow:
-                            _movementContext.ExecuteMovement(board, Direction.Left);
-                            break;
-
-                        case ConsoleKey.RightArrow:
-                            _movementContext.ExecuteMovement(board, Direction.Right);
-                            break;
+                    // ПРОВЕРКА ОКОНЧАНИЯ ИГРЫ - используем HUD
+                    if (_board.IsGameOver())
+                    {
+                        gameOver = true;
+                        _hud?.ShowGameOver();  // Используем HUD для отображения Game Over
+                        Console.WriteLine("\nPress any key to return to main menu...");
+                        Console.ReadKey(true);
                     }
                 }
                 Thread.Sleep(50);
             }
 
-            Console.WriteLine("\nGame Over! Press any key to exit...");
-            Console.ReadKey();
+            _hud?.Dispose();
         }
 
-        private void DemonstrateStrategyPattern()
+        private void ShowGameStatus()
         {
-            Console.WriteLine("STRATEGY PATTERN DEMONSTRATION");
-
-            var context = new GameMovementContext(new ScoreManager());
-
-            Console.WriteLine("DEMO 1: Using different strategies");
-
-            var strategies = new List<IMovementStrategy>
-            {
-                new StandardMovementStrategy(new ScoreManager()),
-                new AggressiveMovementStrategy(new ScoreManager()),
-                new DefensiveMovementStrategy(new ScoreManager()),
-                new RandomMovementStrategy(new ScoreManager())
-            };
-
-            foreach (var strategy in strategies)
-            {
-                context.SetStrategy(strategy);
-                Console.WriteLine($"Strategy: {strategy.GetStrategyName()}");
-                Console.WriteLine($"Multiplier: x{strategy.GetScoreMultiplier()}");
-                Console.WriteLine();
-            }
-
-            Console.WriteLine("Strategies can be changed at runtime without changing the context!");
-            Console.WriteLine("Press 1-4 to change strategy in game!");
-            Console.WriteLine("Use arrow keys to make moves with current strategy!\n");
-        }
-
-        private void DemonstrateFactoryMethod()
-        {
-            Console.WriteLine("\n--- FACTORY METHOD DEMONSTRATION ---");
-
-            List<TileFactory> factories = new List<TileFactory>
-            {
-                new NumberTileFactory(2),
-                new NumberTileFactory(4),
-                new NumberTileFactory(8),
-                new BonusTileFactory(),
-                new ObstacleTileFactory()
-            };
-
-            Console.WriteLine("Creating tiles through factories:");
-            foreach (var factory in factories)
-            {
-                Tile tile = factory.CreateTile();
-
-                Console.WriteLine($"  {factory.GetType().Name,-20} -> {tile.GetType().Name,-15} | " +
-                                $"Value: {tile.Value,3} | Symbol: {tile.GetSymbol()}");
-            }
-
-            Console.WriteLine("\nPolymorphic method calls:");
-            List<Tile> tiles = new List<Tile>();
-
-            tiles.Add(new NumberTileFactory(2).CreateTile());
-            tiles.Add(new NumberTileFactory(4).CreateTile());
-            tiles.Add(new BonusTileFactory().CreateTile());
-            tiles.Add(new ObstacleTileFactory().CreateTile());
-
-            foreach (Tile tile in tiles)
-            {
-                Console.Write($"  {tile.GetType().Name}: ");
-                tile.OnMerge();
-                Console.WriteLine($" -> Value: {tile.Value}");
-            }
-
-            Console.WriteLine("--- END OF FACTORY METHOD DEMONSTRATION ---\n");
-        }
-
-        private void DemonstrateCloning(Tile originalTile)
-        {
-            Console.WriteLine("\n--- PROTOTYPE DEMONSTRATION: Live Cloning ---");
-
-            int originalValue = originalTile.Value;
-            int originalX = originalTile.PositionX;
-            int originalY = originalTile.PositionY;
-            string originalType = originalTile.GetType().Name;
-
-            Console.WriteLine($"Original tile: Type={originalType}, Value={originalValue}, Pos=({originalX},{originalY})");
-
-            Tile clone = (Tile)originalTile.Clone();
-
-            clone.PositionX = 9;
-            clone.PositionY = 9;
-
-            if (clone is NumberTile numClone)
-            {
-                numClone.OnMerge();
-            }
-            else if (clone is BonusTile bonusClone)
-            {
-                bonusClone.OnMerge();
-            }
-            else if (clone is ObstacleTile obstacleClone)
-            {
-                obstacleClone.OnMerge();
-            }
-
-            Console.WriteLine($"Cloned tile:   Type={clone.GetType().Name}, Value={clone.Value}, Pos=({clone.PositionX},{clone.PositionY})");
-            Console.WriteLine($"Are same object? {originalTile == clone}");
-            Console.WriteLine($"Original hash: {originalTile.GetHashCode()}, Clone hash: {clone.GetHashCode()}");
-
-            Console.WriteLine($"\nPROOF - Original tile after cloning:");
-            Console.WriteLine($"  Original Value: {originalTile.Value} ({(originalTile.Value == originalValue ? "UNCHANGED ✓" : "CHANGED ✗")})");
-            Console.WriteLine($"  Original Position: ({originalTile.PositionX},{originalTile.PositionY}) ({(originalTile.PositionX == originalX ? "UNCHANGED ✓" : "CHANGED ✗")})");
-
-            if (originalTile is BonusTile originalBonus && clone is BonusTile clonedBonus)
-            {
-                Console.WriteLine($"  Original Bonus Activated: {originalBonus.IsActivated()}");
-                Console.WriteLine($"  Cloned Bonus Activated: {clonedBonus.IsActivated()}");
-            }
-            else if (originalTile is ObstacleTile originalObstacle && clone is ObstacleTile clonedObstacle)
-            {
-                Console.WriteLine($"  Original Obstacle Health: {originalObstacle.GetHealth()}, Destroyed: {originalObstacle.IsDestroyed()}");
-                Console.WriteLine($"  Cloned Obstacle Health: {clonedObstacle.GetHealth()}, Destroyed: {clonedObstacle.IsDestroyed()}");
-            }
-
-            clonedTiles.Add(clone);
-            Console.WriteLine($"\nClone saved to list. Total clones: {clonedTiles.Count}");
-            Console.WriteLine("--- End of Prototype Demonstration ---\n");
+            Console.WriteLine();
+            Console.WriteLine($"Strategy: {_movementContext.GetCurrentStrategyName()}");
+            Console.WriteLine($"Moves: {_movementContext.GetMoveCount()}");
+            Console.WriteLine($"Score: {_scoreManager.CurrentScore}");
+            Console.WriteLine($"High score: {_scoreManager.HighScore}");
+            Console.WriteLine();
         }
 
         private void UpdateLastAddedTile()
         {
-            if (board == null) return;
+            if (_board == null) return;
 
             for (int row = 0; row < MapSize; row++)
             {
                 for (int col = 0; col < MapSize; col++)
                 {
-                    var tile = board.GetCell(row, col);
+                    var tile = _board.GetCell(row, col);
                     if (tile != null && tile.Value != 0)
                     {
-                        lastAddedTile = tile;
+                        _lastAddedTile = tile;
                         return;
                     }
                 }
             }
         }
 
+        private void DemonstrateCloning(Tile originalTile)
+        {
+            Console.WriteLine("--- Clone demo ---");
+            Tile clone = (Tile)originalTile.Clone();
+            clone.PositionX = 9;
+            clone.PositionY = 9;
+
+            if (clone is NumberTile numClone)
+                numClone.OnMerge();
+            else if (clone is BonusTile bonusClone)
+                bonusClone.OnMerge();
+            else if (clone is ObstacleTile obstacleClone)
+                obstacleClone.OnMerge();
+
+            Console.WriteLine($"Original: {originalTile.Value}");
+            Console.WriteLine($"Clone: {clone.Value}");
+            Console.WriteLine("---");
+
+            _clonedTiles.Add(clone);
+        }
+
         private void DisplayAllClones()
         {
-            if (clonedTiles.Count == 0)
+            if (_clonedTiles.Count == 0)
             {
-                Console.WriteLine("No clones created yet. Press C to create a clone.");
+                Console.WriteLine("No clones created.");
                 return;
             }
 
-            Console.WriteLine($"\n--- All Clones ({clonedTiles.Count}) ---");
-            for (int i = 0; i < clonedTiles.Count; i++)
+            Console.WriteLine($"--- Clones ({_clonedTiles.Count}) ---");
+            for (int i = 0; i < _clonedTiles.Count; i++)
             {
-                var clone = clonedTiles[i];
-                string typeName = clone.GetType().Name;
-                string extraInfo = "";
-
-                if (clone is BonusTile bonus)
-                    extraInfo = $", Activated: {bonus.IsActivated()}";
-                else if (clone is ObstacleTile obstacle)
-                    extraInfo = $", Health: {obstacle.GetHealth()}, Destroyed: {obstacle.IsDestroyed()}";
-
-                Console.WriteLine($"  Clone #{i + 1}: {typeName}, Value={clone.Value}, Pos=({clone.PositionX},{clone.PositionY}){extraInfo}");
+                var clone = _clonedTiles[i];
+                string info = clone is BonusTile bonus ? $", activated: {bonus.IsActivated()}" :
+                              clone is ObstacleTile obstacle ? $", health: {obstacle.GetHealth()}" : "";
+                Console.WriteLine($"  {i + 1}: {clone.GetType().Name}, value={clone.Value}{info}");
             }
-            Console.WriteLine("---\n");
+            Console.WriteLine("---");
         }
 
         public void ShowSettings()
         {
-            Console.WriteLine($"Current settings - Size: {MapSize}, Difficulty: {GameDifficulty}");
+            Console.WriteLine($"Settings: size={MapSize}, difficulty={GameDifficulty}");
+        }
+
+        private void RefreshDisplay()
+        {
+            _hud?.RefreshBoard();
+            _boardRenderer?.Draw();
         }
     }
 
