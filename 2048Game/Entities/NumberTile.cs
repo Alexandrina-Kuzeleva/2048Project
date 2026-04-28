@@ -6,18 +6,21 @@ namespace _2048Game.Entities
         {
             Value = initialValue;
             Name = $"NumberTile_{Value}";
+            IsMerged = false;
         }
 
         private NumberTile(int value, string name)
         {
             Value = value;
             Name = name;
+            IsMerged = false;
         }
 
         public override void OnMerge()
         {
             Value *= 2;
             Name = $"NumberTile_{Value}";
+            IsMerged = true;
         }
 
         public override ConsoleColor GetColor()
