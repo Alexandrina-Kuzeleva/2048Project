@@ -17,6 +17,8 @@ namespace _2048Game.Core
         private Board? board;
         private List<Tile> clonedTiles;
         private Tile? lastAddedTile;
+        private ScoreManager _scoreManager;
+        private GameMovementContext _movementContext;
 
         private GameManager()
         {
@@ -26,6 +28,8 @@ namespace _2048Game.Core
 
             clonedTiles = new List<Tile>();
             lastAddedTile = null;
+            _scoreManager = new ScoreManager();
+            _movementContext = new GameMovementContext(_scoreManager);
         }
 
         public static GameManager Instance
@@ -57,6 +61,8 @@ namespace _2048Game.Core
             DecoratorDemo.DemonstrateDecorator();
 
             AdapterDemo.DemonstrateAdapterPattern();
+
+            DemonstrateStrategyPattern();
 
             Console.WriteLine("\n========================================");
             Console.WriteLine("CONTROLS:");
@@ -102,6 +108,49 @@ namespace _2048Game.Core
                         case ConsoleKey.D:
                             DisplayAllClones();
                             break;
+
+                        case ConsoleKey.D1:
+                        case ConsoleKey.NumPad1:
+                            _movementContext.SetStrategy(new StandardMovementStrategy(_scoreManager));
+                            break;
+
+                        case ConsoleKey.D2:
+                        case ConsoleKey.NumPad2:
+                            _movementContext.SetStrategy(new AggressiveMovementStrategy(_scoreManager));
+                            break;
+
+                        case ConsoleKey.D3:
+                        case ConsoleKey.NumPad3:
+                            _movementContext.SetStrategy(new DefensiveMovementStrategy(_scoreManager));
+                            break;
+
+                        case ConsoleKey.D4:
+                        case ConsoleKey.NumPad4:
+                            _movementContext.SetStrategy(new RandomMovementStrategy(_scoreManager));
+                            break;
+
+                        case ConsoleKey.S:
+                            Console.WriteLine($"\nCurrent Strategy: {_movementContext.GetCurrentStrategyName()}");
+                            Console.WriteLine($"Total moves: {_movementContext.GetMoveCount()}");
+                            Console.WriteLine($"Current Score: {_scoreManager.CurrentScore}");
+                            Console.WriteLine($"High Score: {_scoreManager.HighScore}\n");
+                            break;
+
+                        case ConsoleKey.UpArrow:
+                            _movementContext.ExecuteMovement(board, Direction.Up);
+                            break;
+
+                        case ConsoleKey.DownArrow:
+                            _movementContext.ExecuteMovement(board, Direction.Down);
+                            break;
+
+                        case ConsoleKey.LeftArrow:
+                            _movementContext.ExecuteMovement(board, Direction.Left);
+                            break;
+
+                        case ConsoleKey.RightArrow:
+                            _movementContext.ExecuteMovement(board, Direction.Right);
+                            break;
                     }
                 }
                 Thread.Sleep(50);
@@ -109,6 +158,35 @@ namespace _2048Game.Core
 
             Console.WriteLine("\nGame Over! Press any key to exit...");
             Console.ReadKey();
+        }
+
+        private void DemonstrateStrategyPattern()
+        {
+            Console.WriteLine("STRATEGY PATTERN DEMONSTRATION");
+
+            var context = new GameMovementContext(new ScoreManager());
+
+            Console.WriteLine("DEMO 1: Using different strategies");
+
+            var strategies = new List<IMovementStrategy>
+            {
+                new StandardMovementStrategy(new ScoreManager()),
+                new AggressiveMovementStrategy(new ScoreManager()),
+                new DefensiveMovementStrategy(new ScoreManager()),
+                new RandomMovementStrategy(new ScoreManager())
+            };
+
+            foreach (var strategy in strategies)
+            {
+                context.SetStrategy(strategy);
+                Console.WriteLine($"Strategy: {strategy.GetStrategyName()}");
+                Console.WriteLine($"Multiplier: x{strategy.GetScoreMultiplier()}");
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("Strategies can be changed at runtime without changing the context!");
+            Console.WriteLine("Press 1-4 to change strategy in game!");
+            Console.WriteLine("Use arrow keys to make moves with current strategy!\n");
         }
 
         private void DemonstrateFactoryMethod()
