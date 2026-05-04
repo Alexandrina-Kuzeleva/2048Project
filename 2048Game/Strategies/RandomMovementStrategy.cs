@@ -1,7 +1,8 @@
 using _2048Game.Entities;
 using _2048Game.Systems;
+using _2048Game.Core;
 
-namespace _2048Game.Core
+namespace _2048Game.Strategies
 {
     // Случайное движение
     public class RandomMovementStrategy : IMovementStrategy

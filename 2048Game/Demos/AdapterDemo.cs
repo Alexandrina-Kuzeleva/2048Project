@@ -1,8 +1,9 @@
 using System;
 using _2048Game.Factories;
+using _2048Game.Adapters;
 using _2048Game.Entities;
 
-namespace _2048Game.Core
+namespace _2048Game.Demos
 {
     public static class AdapterDemo
     {

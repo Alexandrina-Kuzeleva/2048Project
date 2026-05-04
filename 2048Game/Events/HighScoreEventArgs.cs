@@ -1,6 +1,6 @@
 using System;
 
-namespace _2048Game.Core
+namespace _2048Game.Events
 {
     public class HighScoreEventArgs : EventArgs
     {

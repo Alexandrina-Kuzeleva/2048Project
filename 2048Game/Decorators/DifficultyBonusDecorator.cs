@@ -1,6 +1,7 @@
 using _2048Game.Core;
+using _2048Game.Systems;
 
-namespace _2048Game.Systems
+namespace _2048Game.Decorators
 {
     public class DifficultyBonusDecorator : ScoreCalculatorDecorator
     {

@@ -1,6 +1,7 @@
 using _2048Game.Entities;
+using _2048Game.Factories;
 
-namespace _2048Game.Factories
+namespace _2048Game.Adapters
 {
     public class ExternalBonusGenerator
     {

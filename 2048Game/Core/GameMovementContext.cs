@@ -1,5 +1,6 @@
 using _2048Game.Entities;
 using _2048Game.Systems;
+using _2048Game.Strategies;
 
 namespace _2048Game.Core
 {
