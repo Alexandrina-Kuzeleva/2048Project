@@ -1,4 +1,5 @@
-namespace _2048Game.Systems
+using _2048Game.Systems;
+namespace _2048Game.Decorators
 {
     public class BaseScoreCalculator : IScoreCalculator
     {

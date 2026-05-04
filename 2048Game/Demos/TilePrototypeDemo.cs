@@ -1,7 +1,8 @@
 using System;
+using _2048Game.Entities;
 using System.Collections.Generic;
 
-namespace _2048Game.Entities
+namespace _2048Game.Demos
 {
     public static class TilePrototypeDemo
     {

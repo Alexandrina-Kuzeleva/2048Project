@@ -1,6 +1,7 @@
 using System;
 using _2048Game.Core;
 using _2048Game.Systems;
+using _2048Game.Events;
 
 namespace _2048Game.UI
 {

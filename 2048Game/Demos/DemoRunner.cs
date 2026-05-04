@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using _2048Game.Systems;
 using _2048Game.Entities;
 using _2048Game.Factories;
+using _2048Game.Adapters;
+using _2048Game.Decorators;
+using _2048Game.Events;
+using _2048Game.Strategies;
 
-namespace _2048Game.Core
+namespace _2048Game.Demos
 {
     public static class DemoRunner
     {

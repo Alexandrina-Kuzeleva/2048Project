@@ -1,7 +1,7 @@
 using System;
 using _2048Game.Entities;
 
-namespace _2048Game.Core
+namespace _2048Game.Events
 {
     public class TileEventArgs : EventArgs
     {

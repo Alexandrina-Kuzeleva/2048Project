@@ -2,7 +2,7 @@ using System;
 using _2048Game.Systems;
 using _2048Game.UI;
 
-namespace _2048Game.Core
+namespace _2048Game.Demos
 {
     public static class EventsDemo
     {

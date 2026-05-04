@@ -4,6 +4,8 @@ using _2048Game.Systems;
 using _2048Game.Entities;
 using _2048Game.Factories;
 using _2048Game.UI;
+using _2048Game.Demos;
+using _2048Game.Strategies;
 
 namespace _2048Game.Core
 {
@@ -233,7 +235,9 @@ namespace _2048Game.Core
             _clonedTiles.Clear();
             _lastAddedTile = null;
 
-            RefreshDisplay();
+            Console.Clear();
+            _hud?.RefreshBoard();
+            _boardRenderer?.Draw();
 
             bool isRunning = true;
             bool gameOver = false;
