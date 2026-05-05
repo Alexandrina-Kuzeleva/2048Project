@@ -1,5 +1,6 @@
 using System;
 using _2048Game.Core;
+using _2048Game.UI;
 
 namespace _2048Game.States
 {
@@ -17,20 +18,17 @@ namespace _2048Game.States
         public void Enter()
         {
             Console.Clear();
-            Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║                      GAME PAUSED                          ║");
-            Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-            Console.WriteLine("║                                                            ║");
-            Console.WriteLine("║    Press ESC to resume game                               ║");
-            Console.WriteLine("║    Press ESC again to continue...                        ║");
-            Console.WriteLine("║                                                            ║");
-            Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+            var content = new List<string>
+            {
+                "",
+                "Press ESC to resume game",
+                "Press M to return to main menu",
+                ""
+            };
+            FrameRenderer.DrawFrame("GAME PAUSED", content);
         }
 
-        public void Update()
-        {
-
-        }
+        public void Update() { }
 
         public void Exit()
         {
@@ -42,8 +40,11 @@ namespace _2048Game.States
             switch (key)
             {
                 case ConsoleKey.Escape:
-                    // Возврат в игру
                     _context.SetState(_context.GameState);
+                    break;
+
+                case ConsoleKey.M:
+                    _context.SetState(_context.MenuState);
                     break;
             }
         }
