@@ -10,16 +10,17 @@ namespace _2048Game.States
         private GameStateContext _context;
         private Board? _board;
         private ScoreManager _scoreManager;
-        private ConsoleHUD? _hud;
+        private ConsoleHUD _hud;
         private BoardRenderer? _boardRenderer;
         private bool _isRunning;
 
         public string StateName => "Game";
 
-        public GameState(GameStateContext context)
+        public GameState(GameStateContext context, ScoreManager scoreManager, ConsoleHUD hud)
         {
             _context = context;
-            _scoreManager = new ScoreManager();
+            _scoreManager = scoreManager;
+            _hud = hud;
         }
 
         public void Enter()
@@ -33,26 +34,21 @@ namespace _2048Game.States
 
             _board = new Board();
             _board.SetScoreManager(_scoreManager);
-            _hud = new ConsoleHUD(_scoreManager);
             _hud.SetBoard(_board);
-
+            _boardRenderer = new BoardRenderer(_board);
 
             _scoreManager.ResetScore();
             _isRunning = true;
 
             Console.Clear();
-            _hud?.RefreshBoard();
-            _boardRenderer?.Draw();
+            _hud.RefreshBoard();
+            _boardRenderer.Draw();
         }
 
-        public void Update()
-        {
-
-        }
+        public void Update() { }
 
         public void Exit()
         {
-            _hud?.Dispose();
             Console.Clear();
         }
 
@@ -104,7 +100,7 @@ namespace _2048Game.States
 
         private void RefreshDisplay()
         {
-            _hud?.RefreshBoard();
+            _hud.RefreshBoard();
             _boardRenderer?.Draw();
         }
 
