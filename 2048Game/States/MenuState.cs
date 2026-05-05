@@ -1,6 +1,7 @@
 using System;
 using _2048Game.Core;
 using _2048Game.Demos;
+using _2048Game.UI;
 
 namespace _2048Game.States
 {
@@ -38,6 +39,8 @@ namespace _2048Game.States
             {
                 case ConsoleKey.D1:
                 case ConsoleKey.NumPad1:
+                    var gameState = (GameState)_context.GameState;
+                    gameState.ResetGame();
                     _context.SetState(_context.GameState);
                     break;
 
@@ -59,18 +62,16 @@ namespace _2048Game.States
 
         private void ShowMainMenu()
         {
-            Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║                     2048 GAME                             ║");
-            Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-            Console.WriteLine("║                                                            ║");
-            Console.WriteLine("║                        MAIN MENU                          ║");
-            Console.WriteLine("║                                                            ║");
-            Console.WriteLine("║    [1] Start Game                                         ║");
-            Console.WriteLine("║    [2] Pattern Demonstrations                            ║");
-            Console.WriteLine("║    [3] Settings                                           ║");
-            Console.WriteLine("║    [ESC] Exit                                             ║");
-            Console.WriteLine("║                                                            ║");
-            Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
+            var content = new List<string>
+                {
+                    "",
+                    "[1] Start Game",
+                    "[2] Pattern Demonstrations",
+                    "[3] Settings",
+                    "[ESC] Exit",
+                    ""
+                };
+            FrameRenderer.DrawFrame("2048 GAME", content);
             Console.Write("\nSelect option: ");
         }
 

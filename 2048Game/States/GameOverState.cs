@@ -21,6 +21,7 @@ namespace _2048Game.States
 
         public void Enter()
         {
+            Console.Clear();
             _hud.ShowGameOver();
         }
 

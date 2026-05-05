@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using _2048Game.Core;
 using _2048Game.Systems;
 using _2048Game.Events;
@@ -21,8 +22,6 @@ namespace _2048Game.UI
 
             _scoreManager.ScoreChanged += OnScoreChanged;
             _scoreManager.HighScoreChanged += OnHighScoreChanged;
-
-            DrawInitialHUD();
         }
 
         public void SetBoard(Board board)
@@ -33,109 +32,61 @@ namespace _2048Game.UI
         private void OnScoreChanged(object? sender, ScoreEventArgs e)
         {
             _lastScore = e.NewScore;
-
-            if (e.PointsAdded > 0)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.SetCursorPosition(0, 8);
-                Console.WriteLine($"+{e.PointsAdded} points! ".PadRight(50));
-                Console.ResetColor();
-            }
-
-            DrawHUD();
+            RefreshAll();
         }
 
         private void OnHighScoreChanged(object? sender, HighScoreEventArgs e)
         {
             _lastHighScore = e.NewHighScore;
-
-            if (e.IsNewRecord)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.SetCursorPosition(0, 9);
-                Console.WriteLine($"NEW HIGH SCORE! {e.OldHighScore} → {e.NewHighScore}".PadRight(50));
-                Console.ResetColor();
-            }
-
-            DrawHUD();
+            RefreshAll();
         }
 
-        private void DrawInitialHUD()
+        public void RefreshAll()
         {
             Console.Clear();
             DrawHUD();
+            _renderer?.Draw();
         }
 
         private void DrawHUD()
         {
-            // Верхняя граница
-            Console.SetCursorPosition(0, 0);
-            Console.WriteLine("╔════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║                        2048 GAME                          ║");
-            Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-
-            // Строка со счетом
-            Console.Write("║ SCORE: ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write($"{_lastScore,8}");
-            Console.ResetColor();
-
-            // Прогресс-бар к рекорду
+            // Прогресс-бар
+            int progress = 0;
             if (_lastHighScore > 0)
             {
-                int progress = (int)((double)_lastScore / _lastHighScore * 100);
+                progress = (int)((double)_lastScore / _lastHighScore * 100);
                 progress = Math.Min(progress, 100);
-
-                Console.Write("  [");
-                for (int i = 0; i < 20; i++)
-                {
-                    if (i < progress / 5)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("█");
-                        Console.ResetColor();
-                    }
-                    else
-                    {
-                        Console.Write("░");
-                    }
-                }
-                Console.Write($"] {progress,3}%");
             }
-            Console.WriteLine(" ║");
 
-            // Строка с рекордом
-            Console.Write("║ HIGH SCORE: ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"{_lastHighScore,8}");
-            Console.ResetColor();
-            Console.WriteLine("                                              ║");
-
-            // Нижняя граница HUD
-            Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-            Console.WriteLine("║ Controls: ESC=Exit | Arrows=Move | SPACE=Add Tile         ║");
-            Console.WriteLine("║ Strategies: 1=Standard | 2=Aggressive | 3=Defensive | 4=Random ║");
-            Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
-        }
-
-        public void RefreshBoard()
-        {
-            if (_renderer != null)
+            string progressBar = "";
+            for (int i = 0; i < 20; i++)
             {
-                _renderer.Draw();
+                progressBar += i < progress / 5 ? "█" : "░";
             }
+
+            var content = new List<string>
+            {
+                $"SCORE: {_lastScore}  [{progressBar}] {progress}%",
+                $"HIGH SCORE: {_lastHighScore}",
+                "",
+                "Controls: ESC=Menu | Arrows=Move | SPACE=Add Tile",
+                "Strategies: 1=Standard | 2=Aggressive | 3=Defensive | 4=Random"
+            };
+
+            FrameRenderer.DrawFrame("2048 GAME", content);
         }
 
         public void ShowGameOver()
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("\n\n╔════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║                      GAME OVER!                            ║");
-            Console.WriteLine("╠════════════════════════════════════════════════════════════╣");
-            Console.WriteLine($"║ Final Score: {_lastScore,8}                                    ║");
-            Console.WriteLine($"║ High Score:  {_lastHighScore,8}                                    ║");
-            Console.WriteLine("╚════════════════════════════════════════════════════════════╝");
-            Console.ResetColor();
+            Console.Clear();
+            var content = new List<string>
+            {
+                $"Final Score: {_lastScore}",
+                $"High Score: {_lastHighScore}",
+                "",
+                "Press any key to return to main menu..."
+            };
+            FrameRenderer.DrawFrame("GAME OVER!", content, ConsoleColor.Red);
         }
 
         public void Dispose()

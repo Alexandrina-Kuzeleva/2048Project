@@ -7,9 +7,6 @@ namespace _2048Game.UI
 {
     public class BoardRenderer
     {
-        private const int CELL_WIDTH = 6;
-        private const int CELL_HEIGHT = 3;
-
         private Board _board;
 
         public BoardRenderer(Board board)
@@ -19,15 +16,14 @@ namespace _2048Game.UI
 
         public void Draw()
         {
-            Console.SetCursorPosition(0, 12); // Начинаем рисовать после HUD
-
             int size = _board.Size;
+            int cellWidth = CalculateCellWidth();
 
             // Верхняя граница
             Console.Write("╔");
             for (int col = 0; col < size; col++)
             {
-                Console.Write(new string('═', CELL_WIDTH));
+                Console.Write(new string('═', cellWidth));
                 if (col < size - 1) Console.Write("╦");
             }
             Console.WriteLine("╗");
@@ -35,12 +31,11 @@ namespace _2048Game.UI
             // Рисуем строки
             for (int row = 0; row < size; row++)
             {
-                // Верхняя часть клеток (содержимое)
                 Console.Write("║");
                 for (int col = 0; col < size; col++)
                 {
                     var tile = _board.GetCell(row, col);
-                    DrawCellContent(tile);
+                    DrawCellContent(tile, cellWidth);
                     if (col < size - 1) Console.Write("║");
                 }
                 Console.WriteLine("║");
@@ -51,7 +46,7 @@ namespace _2048Game.UI
                     Console.Write("╠");
                     for (int col = 0; col < size; col++)
                     {
-                        Console.Write(new string('═', CELL_WIDTH));
+                        Console.Write(new string('═', cellWidth));
                         if (col < size - 1) Console.Write("╬");
                     }
                     Console.WriteLine("╣");
@@ -62,86 +57,76 @@ namespace _2048Game.UI
             Console.Write("╚");
             for (int col = 0; col < size; col++)
             {
-                Console.Write(new string('═', CELL_WIDTH));
+                Console.Write(new string('═', cellWidth));
                 if (col < size - 1) Console.Write("╩");
             }
             Console.WriteLine("╝");
         }
 
-        private void DrawCellContent(Tile? tile)
+        private int CalculateCellWidth()
+        {
+            int maxValue = 0;
+            for (int row = 0; row < _board.Size; row++)
+            {
+                for (int col = 0; col < _board.Size; col++)
+                {
+                    var tile = _board.GetCell(row, col);
+                    if (tile != null && tile.Value > maxValue)
+                    {
+                        maxValue = tile.Value;
+                    }
+                }
+            }
+            int valueLength = maxValue.ToString().Length;
+            return Math.Max(valueLength + 2, 4); // Минимум 4, +2 для пробелов
+        }
+
+        private void DrawCellContent(Tile? tile, int cellWidth)
         {
             if (tile == null)
             {
-                Console.Write("      ");
+                Console.Write(new string(' ', cellWidth));
                 return;
             }
 
-            // Препятствия
             if (tile is ObstacleTile obstacle)
             {
                 if (obstacle.IsDestroyed())
                 {
-                    Console.Write("  ░░  ");
+                    Console.Write("░░".PadRight(cellWidth));
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.Write("  ██  ");
+                    Console.Write("██".PadRight(cellWidth));
                     Console.ResetColor();
                 }
                 return;
             }
 
-            // Бонусные плитки
             if (tile is BonusTile bonus)
             {
                 Console.ForegroundColor = bonus.IsActivated() ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta;
-                Console.Write(bonus.IsActivated() ? "  ★★  " : "  ★   ");
+                Console.Write((bonus.IsActivated() ? "★★" : "★").PadRight(cellWidth));
                 Console.ResetColor();
                 return;
             }
 
-            // Обычные числовые плитки
             if (tile.Value == 0)
             {
-                Console.Write("      ");
+                Console.Write(new string(' ', cellWidth));
                 return;
             }
 
             string valueStr = tile.Value.ToString();
             Console.ForegroundColor = tile.GetColor();
 
-            int padding = (CELL_WIDTH - valueStr.Length) / 2;
+            int padding = (cellWidth - valueStr.Length) / 2;
             Console.Write(new string(' ', padding));
             Console.Write(valueStr);
-            Console.Write(new string(' ', CELL_WIDTH - padding - valueStr.Length));
+            Console.Write(new string(' ', cellWidth - padding - valueStr.Length));
 
             Console.ResetColor();
-        }
-
-        public void DrawSimple()
-        {
-            // Простая версия отрисовки (без рамок)
-            Console.WriteLine();
-            for (int row = 0; row < _board.Size; row++)
-            {
-                for (int col = 0; col < _board.Size; col++)
-                {
-                    var tile = _board.GetCell(row, col);
-                    if (tile != null && tile.Value != 0)
-                    {
-                        Console.ForegroundColor = tile.GetColor();
-                        Console.Write($"[{tile.Value,4}] ");
-                        Console.ResetColor();
-                    }
-                    else
-                    {
-                        Console.Write("[    ] ");
-                    }
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
         }
     }
 }

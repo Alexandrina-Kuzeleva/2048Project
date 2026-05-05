@@ -12,7 +12,7 @@ namespace _2048Game.States
         private ScoreManager _scoreManager;
         private ConsoleHUD _hud;
         private BoardRenderer? _boardRenderer;
-        private bool _isRunning;
+        private bool _isInitialized = false;
 
         public string StateName => "Game";
 
@@ -25,36 +25,39 @@ namespace _2048Game.States
 
         public void Enter()
         {
-            Console.Clear();
-            Console.WriteLine("Starting game...");
-            Console.WriteLine($"Map Size: {GameManager.Instance.MapSize}x{GameManager.Instance.MapSize}");
-            Console.WriteLine($"Difficulty: {GameManager.Instance.GameDifficulty}");
-            Console.WriteLine("\nPress any key to begin...");
-            Console.ReadKey(true);
+            if (!_isInitialized)
+            {
+                Console.Clear();
+                Console.WriteLine("Starting game...");
+                Console.WriteLine($"Map Size: {GameManager.Instance.MapSize}x{GameManager.Instance.MapSize}");
+                Console.WriteLine($"Difficulty: {GameManager.Instance.GameDifficulty}");
+                Console.WriteLine("\nPress any key to begin...");
+                Console.ReadKey(true);
 
-            _board = new Board();
-            _board.SetScoreManager(_scoreManager);
-            _hud.SetBoard(_board);
-            _boardRenderer = new BoardRenderer(_board);
+                _board = new Board();
+                _board.SetScoreManager(_scoreManager);
+                _hud.SetBoard(_board);
+                _boardRenderer = new BoardRenderer(_board);
 
-            _scoreManager.ResetScore();
-            _isRunning = true;
-
-            Console.Clear();
-            _hud.RefreshBoard();
-            _boardRenderer.Draw();
+                _scoreManager.ResetScore();
+                _isInitialized = true;
+            }
+            else
+            {
+                _hud.RefreshAll();
+            }
         }
 
         public void Update() { }
 
         public void Exit()
         {
-            Console.Clear();
+
         }
 
         public void HandleInput(ConsoleKey key)
         {
-            if (!_isRunning) return;
+            if (_board == null) return;
 
             switch (key)
             {
@@ -63,27 +66,27 @@ namespace _2048Game.States
                     break;
 
                 case ConsoleKey.Spacebar:
-                    _board?.AddRandomTile();
+                    _board.AddRandomTile();
                     RefreshDisplay();
                     break;
 
                 case ConsoleKey.UpArrow:
-                    _board?.Move(Direction.Up);
+                    _board.Move(Direction.Up);
                     RefreshDisplay();
                     break;
 
                 case ConsoleKey.DownArrow:
-                    _board?.Move(Direction.Down);
+                    _board.Move(Direction.Down);
                     RefreshDisplay();
                     break;
 
                 case ConsoleKey.LeftArrow:
-                    _board?.Move(Direction.Left);
+                    _board.Move(Direction.Left);
                     RefreshDisplay();
                     break;
 
                 case ConsoleKey.RightArrow:
-                    _board?.Move(Direction.Right);
+                    _board.Move(Direction.Right);
                     RefreshDisplay();
                     break;
 
@@ -92,7 +95,7 @@ namespace _2048Game.States
                     break;
             }
 
-            if (_board != null && _board.IsGameOver())
+            if (_board.IsGameOver())
             {
                 _context.SetState(_context.GameOverState);
             }
@@ -100,8 +103,7 @@ namespace _2048Game.States
 
         private void RefreshDisplay()
         {
-            _hud.RefreshBoard();
-            _boardRenderer?.Draw();
+            _hud.RefreshAll();
         }
 
         private void ShowGameStatus()
@@ -110,6 +112,12 @@ namespace _2048Game.States
             Console.WriteLine($"Score: {_scoreManager.CurrentScore}");
             Console.WriteLine($"High score: {_scoreManager.HighScore}");
             Console.WriteLine();
+        }
+
+        public void ResetGame()
+        {
+            _isInitialized = false;
+            _board = null;
         }
     }
 }
