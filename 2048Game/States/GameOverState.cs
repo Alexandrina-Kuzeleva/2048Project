@@ -8,32 +8,25 @@ namespace _2048Game.States
     {
         private GameStateContext _context;
         private ScoreManager _scoreManager;
-        private ConsoleHUD? _hud;
+        private ConsoleHUD _hud;
 
         public string StateName => "GameOver";
 
-        public GameOverState(GameStateContext context)
+        public GameOverState(GameStateContext context, ScoreManager scoreManager, ConsoleHUD hud)
         {
             _context = context;
-            _scoreManager = new ScoreManager();
+            _scoreManager = scoreManager;
+            _hud = hud;
         }
 
         public void Enter()
         {
-            _hud = new ConsoleHUD(_scoreManager);
             _hud.ShowGameOver();
         }
 
-        public void Update()
-        {
+        public void Update() { }
 
-        }
-
-        public void Exit()
-        {
-            _hud?.Dispose();
-            Console.Clear();
-        }
+        public void Exit() { }
 
         public void HandleInput(ConsoleKey key)
         {
