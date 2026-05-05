@@ -1,6 +1,7 @@
 using Xunit;
 using _2048Game.Factories;
 using _2048Game.Entities;
+using _2048Game.Adapters;
 
 namespace _2048Game.Tests.Tests
 {
