@@ -2,6 +2,7 @@ using System;
 using _2048Game.Systems;
 using _2048Game.UI;
 using _2048Game.Core;
+using _2048Game.Commands;
 
 namespace _2048Game.States
 {
@@ -12,6 +13,7 @@ namespace _2048Game.States
         private ScoreManager _scoreManager;
         private ConsoleHUD _hud;
         private BoardRenderer? _boardRenderer;
+        private InputHandler _inputHandler;
         private bool _isInitialized = false;
 
         public string StateName => "Game";
@@ -21,6 +23,7 @@ namespace _2048Game.States
             _context = context;
             _scoreManager = scoreManager;
             _hud = hud;
+            _inputHandler = new InputHandler();
         }
 
         public void Enter()
@@ -40,19 +43,32 @@ namespace _2048Game.States
                 _boardRenderer = new BoardRenderer(_board);
 
                 _scoreManager.ResetScore();
+
+                SetupDefaultBindings();
+
                 _isInitialized = true;
             }
-            else
-            {
-                _hud.RefreshAll();
-            }
+
+            _hud.RefreshAll();
+            _inputHandler.ShowBindings();
+        }
+
+        private void SetupDefaultBindings()
+        {
+            if (_board == null) return;
+
+            _inputHandler.BindCommand(ConsoleKey.UpArrow, new MoveUpCommand(_board, _hud));
+            _inputHandler.BindCommand(ConsoleKey.DownArrow, new MoveDownCommand(_board, _hud));
+            _inputHandler.BindCommand(ConsoleKey.LeftArrow, new MoveLeftCommand(_board, _hud));
+            _inputHandler.BindCommand(ConsoleKey.RightArrow, new MoveRightCommand(_board, _hud));
+            _inputHandler.BindCommand(ConsoleKey.Spacebar, new AddTileCommand(_board, _hud));
         }
 
         public void Update() { }
 
         public void Exit()
         {
-
+            // Ничего не делаем
         }
 
         public void HandleInput(ConsoleKey key)
@@ -65,33 +81,12 @@ namespace _2048Game.States
                     _context.SetState(_context.PauseState);
                     break;
 
-                case ConsoleKey.Spacebar:
-                    _board.AddRandomTile();
-                    RefreshDisplay();
+                case ConsoleKey.R:
+                    ShowRemapMenu();
                     break;
 
-                case ConsoleKey.UpArrow:
-                    _board.Move(Direction.Up);
-                    RefreshDisplay();
-                    break;
-
-                case ConsoleKey.DownArrow:
-                    _board.Move(Direction.Down);
-                    RefreshDisplay();
-                    break;
-
-                case ConsoleKey.LeftArrow:
-                    _board.Move(Direction.Left);
-                    RefreshDisplay();
-                    break;
-
-                case ConsoleKey.RightArrow:
-                    _board.Move(Direction.Right);
-                    RefreshDisplay();
-                    break;
-
-                case ConsoleKey.S:
-                    ShowGameStatus();
+                default:
+                    _inputHandler.HandleInput(key);
                     break;
             }
 
@@ -101,17 +96,59 @@ namespace _2048Game.States
             }
         }
 
-        private void RefreshDisplay()
+        private void ShowRemapMenu()
         {
-            _hud.RefreshAll();
-        }
+            Console.Clear();
+            Console.WriteLine("=== REMAP CONTROLS ===");
+            Console.WriteLine("Available commands:");
+            Console.WriteLine("  1 - Move Up");
+            Console.WriteLine("  2 - Move Down");
+            Console.WriteLine("  3 - Move Left");
+            Console.WriteLine("  4 - Move Right");
+            Console.WriteLine("  5 - Add Tile");
+            Console.WriteLine("  ESC - Cancel");
+            Console.Write("\nSelect command to remap: ");
 
-        private void ShowGameStatus()
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Score: {_scoreManager.CurrentScore}");
-            Console.WriteLine($"High score: {_scoreManager.HighScore}");
-            Console.WriteLine();
+            var choice = Console.ReadKey(true).Key;
+            ICommand? selectedCommand = null;
+
+            switch (choice)
+            {
+                case ConsoleKey.D1:
+                    selectedCommand = new MoveUpCommand(_board!, _hud);
+                    break;
+                case ConsoleKey.D2:
+                    selectedCommand = new MoveDownCommand(_board!, _hud);
+                    break;
+                case ConsoleKey.D3:
+                    selectedCommand = new MoveLeftCommand(_board!, _hud);
+                    break;
+                case ConsoleKey.D4:
+                    selectedCommand = new MoveRightCommand(_board!, _hud);
+                    break;
+                case ConsoleKey.D5:
+                    selectedCommand = new AddTileCommand(_board!, _hud);
+                    break;
+                default:
+                    return;
+            }
+
+            Console.Write($"\nSelected: {selectedCommand.GetDescription()}");
+            Console.Write("\nPress new key to bind: ");
+            var newKey = Console.ReadKey(true).Key;
+
+            foreach (var binding in _inputHandler.GetAllBindings())
+            {
+                if (binding.Value.GetDescription() == selectedCommand.GetDescription())
+                {
+                    _inputHandler.RemapCommand(binding.Key, newKey, selectedCommand);
+                    break;
+                }
+            }
+
+            Console.WriteLine("\nPress any key to continue...");
+            Console.ReadKey(true);
+            _hud.RefreshAll();
         }
 
         public void ResetGame()
