@@ -1,5 +1,7 @@
 using Xunit;
 using _2048Game.States;
+using _2048Game.Systems;
+using _2048Game.UI;
 
 namespace _2048Game.Tests.Tests
 {
@@ -8,10 +10,14 @@ namespace _2048Game.Tests.Tests
         [Fact]
         public void StateNames_ShouldBeCorrect()
         {
-            var menu = new MenuState(null!);
-            var game = new GameState(null!);
-            var pause = new PauseState(null!);
-            var gameOver = new GameOverState(null!);
+            var scoreManager = new ScoreManager();
+            var hud = new ConsoleHUD(scoreManager);
+            var context = new GameStateContext();
+
+            var menu = new MenuState(context);
+            var game = new GameState(context, scoreManager, hud);
+            var pause = new PauseState(context);
+            var gameOver = new GameOverState(context, scoreManager, hud);
 
             Assert.Equal("Menu", menu.StateName);
             Assert.Equal("Game", game.StateName);

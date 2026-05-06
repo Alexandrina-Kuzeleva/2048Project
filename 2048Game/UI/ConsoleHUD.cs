@@ -65,13 +65,14 @@ namespace _2048Game.UI
             }
 
             var content = new List<string>
-            {
-                $"SCORE: {_lastScore}  [{progressBar}] {progress}%",
-                $"HIGH SCORE: {_lastHighScore}",
-                "",
-                "Controls: ESC=Menu | Arrows=Move | SPACE=Add Tile",
-                "Strategies: 1=Standard | 2=Aggressive | 3=Defensive | 4=Random"
-            };
+                {
+                    $"SCORE: {_lastScore}  [{progressBar}] {progress}%",
+                    $"HIGH SCORE: {_lastHighScore}",
+                    "",
+                    "Controls: Arrows=Move | SPACE=Add Tile | ESC=Menu | R=Remap Keys",
+                    "",
+                    "Press R to remap controls!"
+                };
 
             FrameRenderer.DrawFrame("2048 GAME", content);
         }
