@@ -90,6 +90,32 @@ namespace _2048Game.UI
             FrameRenderer.DrawFrame("GAME OVER!", content, ConsoleColor.Red);
         }
 
+        public void DisplayHighScores(HighScoreRepository repository)
+        {
+            var topScores = repository.GetTopScores(5);
+
+            Console.Clear();
+
+            var content = new List<string>
+                {
+                    "",
+                    "Rank │ Player      │ Score    │ Difficulty │ Board Size",
+                    "─────┼─────────────┼──────────┼─────────────┼────────────"
+                };
+
+            for (int i = 0; i < topScores.Count; i++)
+            {
+                var score = topScores[i];
+                content.Add($"{i + 1,4} │ {score.PlayerName,-11} │ {score.Score,8} │ {score.Difficulty,-11} │ {score.BoardSize}x{score.BoardSize,-6}");
+            }
+
+            content.Add("");
+            content.Add("Press any key to continue...");
+
+            FrameRenderer.DrawFrame("HIGH SCORES", content);
+            Console.ReadKey(true);
+        }
+
         public void Dispose()
         {
             if (!_disposed)

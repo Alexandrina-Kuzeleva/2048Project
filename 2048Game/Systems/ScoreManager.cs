@@ -46,6 +46,20 @@ namespace _2048Game.Systems
             OnScoreChanged(new ScoreEventArgs(oldScore, currentScore));
         }
 
+        public void SetScore(int score)
+        {
+            int oldScore = currentScore;
+            currentScore = score;
+            OnScoreChanged(new ScoreEventArgs(oldScore, currentScore));
+        }
+
+        public void SetHighScore(int highScore)
+        {
+            int oldHighScore = this.highScore;
+            this.highScore = highScore;
+            OnHighScoreChanged(new HighScoreEventArgs(oldHighScore, this.highScore));
+        }
+
         protected virtual void OnScoreChanged(ScoreEventArgs e)
         {
             ScoreChanged?.Invoke(this, e);

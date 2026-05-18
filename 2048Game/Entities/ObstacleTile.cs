@@ -37,6 +37,16 @@ namespace _2048Game.Entities
 
         }
 
+        public void RestoreState(int healthValue, bool destroyed)
+        {
+            health = healthValue;
+            isDestroyed = destroyed;
+            if (isDestroyed)
+            {
+                Value = 0;
+            }
+        }
+
         public override ConsoleColor GetColor()
         {
             if (isDestroyed) return ConsoleColor.DarkGray;

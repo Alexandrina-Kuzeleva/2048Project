@@ -14,15 +14,20 @@ namespace _2048Game.Core
     {
         private static GameManager? _instance;
         private GameStateContext _stateContext;
+        private SaveManager _saveManager;
+        private HighScoreRepository _highScoreRepository;
 
         public int MapSize { get; set; }
         public Difficulty GameDifficulty { get; set; }
+        public string CurrentPlayerName { get; set; } = "Anonymous";
 
         private GameManager()
         {
             MapSize = 4;
             GameDifficulty = Difficulty.Normal;
             _stateContext = new GameStateContext();
+            _saveManager = new SaveManager();
+            _highScoreRepository = new HighScoreRepository();
         }
 
         public static GameManager Instance
@@ -39,6 +44,8 @@ namespace _2048Game.Core
 
         public void Run()
         {
+            _stateContext.CurrentState.Enter();
+
             while (true)
             {
                 if (Console.KeyAvailable)
@@ -54,6 +61,29 @@ namespace _2048Game.Core
         public void ShowSettings()
         {
             Console.WriteLine($"Settings: size={MapSize}, difficulty={GameDifficulty}");
+        }
+
+        public void ShowHighScores()
+        {
+            var tempHUD = new ConsoleHUD(_stateContext.ScoreManager);
+            tempHUD.DisplayHighScores(_highScoreRepository);
+        }
+
+        public void SaveGame(Board board, ScoreManager scoreManager)
+        {
+            var saveData = _saveManager.SaveGame(board, scoreManager);
+            Console.WriteLine($"\nGame saved! ({saveData.SaveTime:HH:mm:ss})");
+            Console.ReadKey(true);
+        }
+
+        public SaveData? LoadGame()
+        {
+            return _saveManager.LoadGame();
+        }
+
+        public bool HasSave()
+        {
+            return _saveManager.SaveExists();
         }
     }
 

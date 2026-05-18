@@ -3,6 +3,7 @@ using _2048Game.Systems;
 using _2048Game.UI;
 using _2048Game.Core;
 using _2048Game.Commands;
+using _2048Game.Entities;
 
 namespace _2048Game.States
 {
@@ -37,15 +38,20 @@ namespace _2048Game.States
                 Console.WriteLine("\nPress any key to begin...");
                 Console.ReadKey(true);
 
-                _board = new Board();
-                _board.SetScoreManager(_scoreManager);
-                _hud.SetBoard(_board);
-                _boardRenderer = new BoardRenderer(_board);
-
-                _scoreManager.ResetScore();
+                if (GameManager.Instance.HasSave() && AskLoadSavedGame())
+                {
+                    LoadSavedGame();
+                }
+                else
+                {
+                    _board = new Board();
+                    _board.SetScoreManager(_scoreManager);
+                    _hud.SetBoard(_board);
+                    _boardRenderer = new BoardRenderer(_board);
+                    _scoreManager.ResetScore();
+                }
 
                 SetupDefaultBindings();
-
                 _isInitialized = true;
             }
 
@@ -83,6 +89,14 @@ namespace _2048Game.States
 
                 case ConsoleKey.R:
                     ShowRemapMenu();
+                    break;
+
+                case ConsoleKey.F5:
+                    GameManager.Instance.SaveGame(_board, _scoreManager);
+                    break;
+
+                case ConsoleKey.F9:
+                    LoadSavedGame();
                     break;
 
                 default:
@@ -155,6 +169,67 @@ namespace _2048Game.States
         {
             _isInitialized = false;
             _board = null;
+        }
+
+        private bool AskLoadSavedGame()
+        {
+            Console.WriteLine("A saved game was found. Load it? (Y/N)");
+            var key = Console.ReadKey(true).Key;
+            return key == ConsoleKey.Y || key == ConsoleKey.Enter;
+        }
+
+        private void LoadSavedGame()
+        {
+            var saveData = GameManager.Instance.LoadGame();
+            if (saveData == null) return;
+
+            GameManager.Instance.MapSize = saveData.MapSize;
+            GameManager.Instance.GameDifficulty = saveData.GameDifficulty;
+
+            _board = new Board(false);
+            _board.SetScoreManager(_scoreManager);
+
+            if (saveData.Grid != null)
+            {
+                foreach (var tileData in saveData.Grid)
+                {
+                    if (tileData.Value == 0)
+                        continue;
+
+                    Tile tile = tileData.Type switch
+                    {
+                        "BonusTile" => new BonusTile(),
+                        "ObstacleTile" => new ObstacleTile(),
+                        _ => new NumberTile(tileData.Value)
+                    };
+
+                    tile.PositionX = tileData.PositionX;
+                    tile.PositionY = tileData.PositionY;
+
+                    if (tile is BonusTile bonusTile)
+                    {
+                        bonusTile.RestoreActivation(tileData.IsActivated);
+                    }
+
+                    if (tile is ObstacleTile obstacleTile)
+                    {
+                        obstacleTile.RestoreState(tileData.Health, tileData.IsDestroyed);
+                    }
+
+                    _board.SetCell(tileData.PositionX, tileData.PositionY, tile);
+                }
+            }
+
+            _scoreManager.SetScore(saveData.CurrentScore);
+            _scoreManager.SetHighScore(saveData.HighScore);
+
+            _hud.SetBoard(_board);
+            _boardRenderer = new BoardRenderer(_board);
+            SetupDefaultBindings();
+            _hud.RefreshAll();
+
+            Console.WriteLine("Game loaded!");
+            Console.ReadKey(true);
         }
     }
 }
