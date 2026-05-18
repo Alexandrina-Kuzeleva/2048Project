@@ -27,6 +27,11 @@ namespace _2048Game.Entities
             Console.WriteLine("★ Бонус активирован! ★");
         }
 
+        public void RestoreActivation(bool activated)
+        {
+            isActivated = activated;
+        }
+
         public override ConsoleColor GetColor()
         {
             return isActivated ? ConsoleColor.DarkMagenta : ConsoleColor.Magenta;

@@ -20,6 +20,7 @@ namespace _2048Game.States
         public void Enter()
         {
             Console.Clear();
+            ShowTopScores();
             ShowMainMenu();
         }
 
@@ -39,6 +40,7 @@ namespace _2048Game.States
             {
                 case ConsoleKey.D1:
                 case ConsoleKey.NumPad1:
+                    SelectPlayerName();
                     var gameState = (GameState)_context.GameState;
                     gameState.ResetGame();
                     _context.SetState(_context.GameState);
@@ -58,6 +60,98 @@ namespace _2048Game.States
                     Environment.Exit(0);
                     break;
             }
+        }
+
+        private void ShowTopScores()
+        {
+            var repository = new HighScoreRepository();
+            var topScores = repository.GetTopScores(5);
+            if (topScores.Count == 0)
+            {
+                return;
+            }
+
+            Console.Clear();
+            var content = new List<string>
+            {
+                "Rank | Player      | Score | Difficulty | Size | Date",
+                "─────┼─────────────┼──────────┼─────────────┼─────┼──────────",
+            };
+
+            for (int i = 0; i < topScores.Count; i++)
+            {
+                var score = topScores[i];
+                content.Add($"{i + 1,4} | {score.PlayerName,-11} | {score.Score,5} | {score.Difficulty,-10} | {score.BoardSize,2} | {score.Date:yyyy-MM-dd}");
+            }
+
+            content.Add("");
+            content.Add("Press any key to continue...");
+
+            FrameRenderer.DrawFrame("TOP SCORES", content, ConsoleColor.Cyan);
+            Console.ReadKey(true);
+        }
+
+        private void SelectPlayerName()
+        {
+            Console.Clear();
+            var repository = new HighScoreRepository();
+            var names = repository.GetUniquePlayerNames(5);
+            var content = new List<string>();
+
+            if (names.Count > 0)
+            {
+                content.Add("Choose a player name:");
+                content.Add("");
+                for (int i = 0; i < names.Count; i++)
+                {
+                    content.Add($"{i + 1}. {names[i]}");
+                }
+                content.Add($"0. Enter new name");
+                content.Add("");
+                content.Add("Press the number of your choice.");
+
+                FrameRenderer.DrawFrame("PLAYER SELECTION", content, ConsoleColor.Green);
+                var key = Console.ReadKey(true).Key;
+
+                if ((key >= ConsoleKey.D1 && key <= ConsoleKey.D9) || (key >= ConsoleKey.NumPad1 && key <= ConsoleKey.NumPad9))
+                {
+                    int choice = key >= ConsoleKey.NumPad1 && key <= ConsoleKey.NumPad9
+                        ? key - ConsoleKey.NumPad0
+                        : key - ConsoleKey.D0;
+
+                    if (choice >= 1 && choice <= names.Count)
+                    {
+                        GameManager.Instance.CurrentPlayerName = names[choice - 1];
+                        return;
+                    }
+                }
+
+                if (key == ConsoleKey.D0 || key == ConsoleKey.NumPad0)
+                {
+                    GameManager.Instance.CurrentPlayerName = PromptForNewName();
+                    return;
+                }
+            }
+            else
+            {
+                content.Add("No previous players found.");
+                content.Add("");
+                content.Add("Enter a new player name to begin.");
+                FrameRenderer.DrawFrame("PLAYER SELECTION", content, ConsoleColor.Green);
+            }
+
+            GameManager.Instance.CurrentPlayerName = PromptForNewName();
+        }
+
+        private string PromptForNewName()
+        {
+            Console.Write("Enter player name: ");
+            string? name = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return "Anonymous";
+            }
+            return name;
         }
 
         private void ShowMainMenu()

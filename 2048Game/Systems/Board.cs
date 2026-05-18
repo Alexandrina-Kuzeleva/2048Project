@@ -14,7 +14,11 @@ namespace _2048Game.Systems
 
         public int Size => size;
 
-        public Board()
+        public Board() : this(true)
+        {
+        }
+
+        public Board(bool initialize)
         {
             this.size = GameManager.Instance.MapSize;
             grid = new Tile[size, size];
@@ -23,7 +27,13 @@ namespace _2048Game.Systems
             _scoreManager = new ScoreManager();
 
             InitializeFactories();
-            InitializeBoard();
+            InitializeEmptyBoard();
+
+            if (initialize)
+            {
+                AddRandomTile();
+                AddRandomTile();
+            }
 
             Console.WriteLine($"Board created with size {size}");
             Console.WriteLine($"Available factories: {availableFactories.Count}");
@@ -34,18 +44,19 @@ namespace _2048Game.Systems
             _scoreManager = scoreManager;
         }
 
-        private void InitializeBoard()
+        private void InitializeEmptyBoard()
         {
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
                 {
-                    grid[i, j] = new NumberTile(0);
+                    grid[i, j] = new NumberTile(0)
+                    {
+                        PositionX = i,
+                        PositionY = j
+                    };
                 }
             }
-
-            AddRandomTile();
-            AddRandomTile();
         }
 
         private void InitializeFactories()
@@ -523,6 +534,14 @@ namespace _2048Game.Systems
             }
 
             return true;
+        }
+
+        public void SetCell(int x, int y, Tile tile)
+        {
+            if (x >= 0 && x < size && y >= 0 && y < size)
+            {
+                grid[x, y] = tile;
+            }
         }
 
     }

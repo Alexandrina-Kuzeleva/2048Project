@@ -26,7 +26,6 @@ namespace _2048Game.States
             _gameOverState = new GameOverState(this, _scoreManager, _hud);
 
             _currentState = _menuState;
-            _currentState.Enter();
         }
 
         public void SetState(IGameState newState)

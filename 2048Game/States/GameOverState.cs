@@ -1,4 +1,5 @@
 using System;
+using _2048Game.Core;
 using _2048Game.Systems;
 using _2048Game.UI;
 
@@ -22,7 +23,20 @@ namespace _2048Game.States
         public void Enter()
         {
             Console.Clear();
+            SaveFinalScore();
             _hud.ShowGameOver();
+        }
+
+        private void SaveFinalScore()
+        {
+            var repository = new HighScoreRepository();
+            string playerName = GameManager.Instance.CurrentPlayerName;
+            if (string.IsNullOrWhiteSpace(playerName))
+            {
+                playerName = "Anonymous";
+            }
+
+            repository.AddScore(playerName, _scoreManager.CurrentScore, GameManager.Instance.GameDifficulty, GameManager.Instance.MapSize);
         }
 
         public void Update() { }
