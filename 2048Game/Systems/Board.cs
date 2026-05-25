@@ -35,8 +35,6 @@ namespace _2048Game.Systems
                 AddRandomTile();
             }
 
-            Console.WriteLine($"Board created with size {size}");
-            Console.WriteLine($"Available factories: {availableFactories.Count}");
         }
 
         public void SetScoreManager(ScoreManager scoreManager)
@@ -87,7 +85,9 @@ namespace _2048Game.Systems
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (grid[i, j].Value == 0)
+                    var tile = grid[i, j];
+                    // Ячейка пустая, если Value == 0 И это не BonusTile
+                    if (tile.Value == 0 && !(tile is BonusTile))
                     {
                         emptyCells.Add((i, j));
                     }
@@ -102,10 +102,6 @@ namespace _2048Game.Systems
 
                 Tile newTile = factory.CreateTileAtPosition(x, y);
                 grid[x, y] = newTile;
-
-                string tileType = newTile is BonusTile ? "★ Bonus" :
-                                  newTile is ObstacleTile ? "█ Obstacle" : "Number";
-                Console.WriteLine($"Added {tileType} tile at ({x}, {y}) with value {newTile.Value}");
             }
         }
 
@@ -171,20 +167,27 @@ namespace _2048Game.Systems
 
         private bool CanMerge(Tile a, Tile b)
         {
-            // Нельзя сливать с препятствиями
+            // Бонус можно активировать при касании с любой непустой плиткой
+            if (a is BonusTile || b is BonusTile)
+            {
+                if (a is BonusTile)
+                    return !(b is NumberTile numberB && numberB.Value == 0 && !(b is BonusTile));
+                return !(a is NumberTile numberA && numberA.Value == 0 && !(a is BonusTile));
+            }
+
+            // Препятствия можно повредить при столкновении с реальной плиткой
             if (a is ObstacleTile || b is ObstacleTile)
-                return false;
+            {
+                if (a is ObstacleTile && b is ObstacleTile)
+                    return false;
+
+                return !(a is NumberTile numberA && numberA.Value == 0 && !(a is BonusTile))
+                    && !(b is NumberTile numberB && numberB.Value == 0 && !(b is BonusTile));
+            }
 
             // Нельзя сливать с пустыми клетками
             if (a.Value == 0 || b.Value == 0)
                 return false;
-
-            // Бонусные плитки
-            if (a is BonusTile || b is BonusTile)
-            {
-                // Бонус можно активировать при касании с любой плиткой
-                return true;
-            }
 
             // Обычные плитки - по значению
             return a.Value == b.Value && !a.IsMerged && !b.IsMerged;
@@ -192,17 +195,48 @@ namespace _2048Game.Systems
 
         private void MergeTiles(Tile a, Tile b, int row, int col, int targetRow, int targetCol)
         {
-            if (a is BonusTile bonus)
+            // Обработка бонусной плитки (может быть как a, так и b)
+            if (a is BonusTile)
             {
-                bonus.OnMerge();
                 _scoreManager?.AddPoints(100);
                 Console.WriteLine($"★ Bonus activated! +100 points ★");
 
-                // Бонусная плитка исчезает после активации
+                // Плитка движется в бонус: бонус удаляется, движущаяся плитка занимает целевую позицию.
+                if (!(b is BonusTile))
+                {
+                    grid[targetRow, targetCol] = b;
+                }
+                else
+                {
+                    grid[targetRow, targetCol] = new NumberTile(0);
+                }
+
                 grid[row, col] = new NumberTile(0);
                 return;
             }
 
+            if (b is BonusTile)
+            {
+                _scoreManager?.AddPoints(100);
+                Console.WriteLine($"★ Bonus activated! +100 points ★");
+                grid[row, col] = new NumberTile(0);
+                return;
+            }
+
+            // Обработка препятствия (повреждение)
+            if (a is ObstacleTile obstacleA)
+            {
+                obstacleA.OnMerge();
+                return;
+            }
+
+            if (b is ObstacleTile obstacleB)
+            {
+                obstacleB.OnMerge();
+                return;
+            }
+
+            // Слияние обычных плиток
             if (a is NumberTile numA && b is NumberTile numB)
             {
                 int newValue = numA.Value + numB.Value;
@@ -211,7 +245,6 @@ namespace _2048Game.Systems
                 grid[targetRow, targetCol].IsMerged = true;
 
                 _scoreManager?.AddPoints(newValue);
-                Console.WriteLine($"Merged! {numA.Value} + {numB.Value} = {newValue} (+{newValue} points)");
             }
         }
 
@@ -229,8 +262,12 @@ namespace _2048Game.Systems
                     if (!IsMovable(currentTile)) continue;
 
                     int targetCol = col;
-                    while (targetCol > 0 && grid[row, targetCol - 1].Value == 0)
+                    while (targetCol > 0)
                     {
+                        var nextTile = grid[row, targetCol - 1];
+                        // Останавливаемся если следующая клетка занята (не пустая)
+                        if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                            break;
                         targetCol--;
                     }
 
@@ -247,7 +284,11 @@ namespace _2048Game.Systems
                     var current = grid[row, col];
                     var next = grid[row, col + 1];
 
-                    if (current.Value != 0 && CanMerge(current, next))
+                    // Проверяем слияние для обычных плиток, бонусов и препятствий
+                    bool canMergeWithBonus = (current is BonusTile || next is BonusTile);
+                    bool canMergeWithObstacle = (current is ObstacleTile || next is ObstacleTile);
+
+                    if ((current.Value != 0 || canMergeWithBonus || canMergeWithObstacle) && IsMovable(next) && CanMerge(current, next))
                     {
                         MergeTiles(current, next, row, col + 1, row, col);
                     }
@@ -260,8 +301,11 @@ namespace _2048Game.Systems
                     if (currentTile.Value != 0 && IsMovable(currentTile))
                     {
                         int targetCol = col;
-                        while (targetCol > 0 && grid[row, targetCol - 1].Value == 0)
+                        while (targetCol > 0)
                         {
+                            var nextTile = grid[row, targetCol - 1];
+                            if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                                break;
                             targetCol--;
                         }
 
@@ -287,8 +331,11 @@ namespace _2048Game.Systems
                     if (!IsMovable(currentTile)) continue;
 
                     int targetCol = col;
-                    while (targetCol < size - 1 && grid[row, targetCol + 1].Value == 0)
+                    while (targetCol < size - 1)
                     {
+                        var nextTile = grid[row, targetCol + 1];
+                        if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                            break;
                         targetCol++;
                     }
 
@@ -305,7 +352,10 @@ namespace _2048Game.Systems
                     var current = grid[row, col];
                     var prev = grid[row, col - 1];
 
-                    if (current.Value != 0 && CanMerge(current, prev))
+                    bool canMergeWithBonus = (current is BonusTile || prev is BonusTile);
+                    bool canMergeWithObstacle = (current is ObstacleTile || prev is ObstacleTile);
+
+                    if ((current.Value != 0 || canMergeWithBonus || canMergeWithObstacle) && IsMovable(prev) && CanMerge(current, prev))
                     {
                         MergeTiles(current, prev, row, col - 1, row, col);
                     }
@@ -318,8 +368,11 @@ namespace _2048Game.Systems
                     if (currentTile.Value != 0 && IsMovable(currentTile))
                     {
                         int targetCol = col;
-                        while (targetCol < size - 1 && grid[row, targetCol + 1].Value == 0)
+                        while (targetCol < size - 1)
                         {
+                            var nextTile = grid[row, targetCol + 1];
+                            if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                                break;
                             targetCol++;
                         }
 
@@ -345,8 +398,11 @@ namespace _2048Game.Systems
                     if (!IsMovable(currentTile)) continue;
 
                     int targetRow = row;
-                    while (targetRow > 0 && grid[targetRow - 1, col].Value == 0)
+                    while (targetRow > 0)
                     {
+                        var nextTile = grid[targetRow - 1, col];
+                        if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                            break;
                         targetRow--;
                     }
 
@@ -363,7 +419,10 @@ namespace _2048Game.Systems
                     var current = grid[row, col];
                     var next = grid[row + 1, col];
 
-                    if (current.Value != 0 && CanMerge(current, next))
+                    bool canMergeWithBonus = (current is BonusTile || next is BonusTile);
+                    bool canMergeWithObstacle = (current is ObstacleTile || next is ObstacleTile);
+
+                    if ((current.Value != 0 || canMergeWithBonus || canMergeWithObstacle) && IsMovable(next) && CanMerge(current, next))
                     {
                         MergeTiles(current, next, row + 1, col, row, col);
                     }
@@ -376,8 +435,11 @@ namespace _2048Game.Systems
                     if (currentTile.Value != 0 && IsMovable(currentTile))
                     {
                         int targetRow = row;
-                        while (targetRow > 0 && grid[targetRow - 1, col].Value == 0)
+                        while (targetRow > 0)
                         {
+                            var nextTile = grid[targetRow - 1, col];
+                            if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                                break;
                             targetRow--;
                         }
 
@@ -403,8 +465,11 @@ namespace _2048Game.Systems
                     if (!IsMovable(currentTile)) continue;
 
                     int targetRow = row;
-                    while (targetRow < size - 1 && grid[targetRow + 1, col].Value == 0)
+                    while (targetRow < size - 1)
                     {
+                        var nextTile = grid[targetRow + 1, col];
+                        if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                            break;
                         targetRow++;
                     }
 
@@ -421,7 +486,10 @@ namespace _2048Game.Systems
                     var current = grid[row, col];
                     var prev = grid[row - 1, col];
 
-                    if (current.Value != 0 && CanMerge(current, prev))
+                    bool canMergeWithBonus = (current is BonusTile || prev is BonusTile);
+                    bool canMergeWithObstacle = (current is ObstacleTile || prev is ObstacleTile);
+
+                    if ((current.Value != 0 || canMergeWithBonus || canMergeWithObstacle) && IsMovable(prev) && CanMerge(current, prev))
                     {
                         MergeTiles(current, prev, row - 1, col, row, col);
                     }
@@ -434,8 +502,11 @@ namespace _2048Game.Systems
                     if (currentTile.Value != 0 && IsMovable(currentTile))
                     {
                         int targetRow = row;
-                        while (targetRow < size - 1 && grid[targetRow + 1, col].Value == 0)
+                        while (targetRow < size - 1)
                         {
+                            var nextTile = grid[targetRow + 1, col];
+                            if (nextTile.Value != 0 || nextTile is BonusTile || (nextTile is ObstacleTile obstacle && !obstacle.IsDestroyed()))
+                                break;
                             targetRow++;
                         }
 

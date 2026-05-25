@@ -44,6 +44,7 @@ namespace _2048Game.Core
 
         public void Run()
         {
+            ShowWelcomeMessage();
             _stateContext.CurrentState.Enter();
 
             while (true)
@@ -56,6 +57,24 @@ namespace _2048Game.Core
                 _stateContext.Update();
                 System.Threading.Thread.Sleep(50);
             }
+        }
+
+        private void ShowWelcomeMessage()
+        {
+            Console.Clear();
+            var content = new List<string>
+            {
+                "Welcome to 2048 Game!",
+                "Combine tiles, activate bonuses, and break obstacles.",
+                "",
+                "Use arrow keys to move and ESC to return to menu.",
+                "Save with F5 and load with F9.",
+                "",
+                "Press any key to continue..."
+            };
+
+            FrameRenderer.DrawFrame("WELCOME", content, ConsoleColor.Green);
+            Console.ReadKey(true);
         }
 
         public void ShowSettings()

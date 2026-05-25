@@ -18,14 +18,11 @@ namespace _2048Game.Strategies
 
         public bool ExecuteMove(Board board, Direction direction)
         {
-            Console.WriteLine($"Aggressive Moving {direction} with bonus potential!");
-
             bool moved = SimulateMove(board, direction);
 
             if (moved)
             {
                 int bonus = _random.Next(10, 51);
-                Console.WriteLine($"Aggressive Bonus points: +{bonus}!");
                 _scoreManager.AddPoints(bonus);
             }
 

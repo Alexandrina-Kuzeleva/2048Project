@@ -20,8 +20,6 @@ namespace _2048Game.Strategies
 
         public bool ExecuteMove(Board board, Direction direction)
         {
-            Console.WriteLine($"DefensiveMoving {direction} - building defense!");
-
             bool moved = SimulateMove(board, direction);
 
             if (moved)
@@ -30,7 +28,6 @@ namespace _2048Game.Strategies
 
                 if (_defenseCounter % 3 == 0)
                 {
-                    Console.WriteLine($"Defensive Shield activated! Bonus +50 points!");
                     _scoreManager.AddPoints(50);
                 }
             }

@@ -18,11 +18,8 @@ namespace _2048Game.Strategies
 
         public bool ExecuteMove(Board board, Direction direction)
         {
-            Console.WriteLine($"Random Attempting to move {direction}...");
-
             if (_random.Next(100) < 20)
             {
-                Console.WriteLine($"Random Movement failed! No points gained.");
                 return false;
             }
 
@@ -31,7 +28,6 @@ namespace _2048Game.Strategies
             if (moved)
             {
                 int randomPoints = _random.Next(5, 31);
-                Console.WriteLine($"Random Random points: +{randomPoints}");
                 _scoreManager.AddPoints(randomPoints);
             }
 
@@ -40,11 +36,6 @@ namespace _2048Game.Strategies
 
         private bool SimulateMove(Board board, Direction direction)
         {
-            if (_random.Next(100) < 10)
-            {
-                Console.WriteLine($"Random Direction changed randomly!");
-                return true;
-            }
             return true;
         }
 
