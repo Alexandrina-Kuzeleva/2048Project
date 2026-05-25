@@ -15,15 +15,7 @@ namespace _2048Game.Strategies
 
         public bool ExecuteMove(Board board, Direction direction)
         {
-            Console.WriteLine($"Standard Moving {direction}");
-
             bool moved = SimulateMove(board, direction);
-
-            if (moved)
-            {
-                Console.WriteLine($"Standard Standard scoring applied");
-            }
-
             return moved;
         }
 

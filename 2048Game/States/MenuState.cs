@@ -57,6 +57,7 @@ namespace _2048Game.States
                     break;
 
                 case ConsoleKey.Escape:
+                    ShowFarewell();
                     Environment.Exit(0);
                     break;
             }
@@ -152,6 +153,23 @@ namespace _2048Game.States
                 return "Anonymous";
             }
             return name;
+        }
+
+        private void ShowFarewell()
+        {
+            Console.Clear();
+            var content = new List<string>
+            {
+                "Thanks for playing 2048 Game!",
+                $"Goodbye, {GameManager.Instance.CurrentPlayerName}.",
+                "",
+                "Hope you crushed your high score.",
+                "",
+                "Press any key to exit..."
+            };
+
+            FrameRenderer.DrawFrame("GOODBYE", content, ConsoleColor.Magenta);
+            Console.ReadKey(true);
         }
 
         private void ShowMainMenu()

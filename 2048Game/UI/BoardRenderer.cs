@@ -98,7 +98,15 @@ namespace _2048Game.UI
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.Write("██".PadRight(cellWidth));
+                    int health = obstacle.GetHealth();
+                    string healthBar = health switch
+                    {
+                        3 => "███",
+                        2 => "██░",
+                        1 => "█░░",
+                        _ => "░░░"
+                    };
+                    Console.Write(healthBar.Substring(0, Math.Min(healthBar.Length, cellWidth)).PadRight(cellWidth));
                     Console.ResetColor();
                 }
                 return;
