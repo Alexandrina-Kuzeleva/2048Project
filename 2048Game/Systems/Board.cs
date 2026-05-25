@@ -1,3 +1,4 @@
+using System.Linq;
 using _2048Game.Entities;
 using _2048Game.Core;
 using _2048Game.Factories;
@@ -31,7 +32,7 @@ namespace _2048Game.Systems
 
             if (initialize)
             {
-                AddRandomTile();
+                AddRandomTile(forceNumberTile: true);
                 AddRandomTile();
             }
 
@@ -77,8 +78,18 @@ namespace _2048Game.Systems
             }
         }
 
-        public void AddRandomTile()
+        public void AddRandomTile(bool forceNumberTile = false)
         {
+            List<TileFactory> spawnFactories = availableFactories;
+            if (forceNumberTile || !HasNumberTile())
+            {
+                var numberFactories = availableFactories.Where(factory => factory is NumberTileFactory).ToList();
+                if (numberFactories.Count > 0)
+                {
+                    spawnFactories = numberFactories;
+                }
+            }
+
             List<(int, int)> emptyCells = new List<(int, int)>();
 
             for (int i = 0; i < size; i++)
@@ -94,15 +105,28 @@ namespace _2048Game.Systems
                 }
             }
 
-            if (emptyCells.Count > 0)
+            if (emptyCells.Count > 0 && spawnFactories.Count > 0)
             {
                 var (x, y) = emptyCells[random.Next(emptyCells.Count)];
-                int factoryIndex = random.Next(availableFactories.Count);
-                TileFactory factory = availableFactories[factoryIndex];
+                int factoryIndex = random.Next(spawnFactories.Count);
+                TileFactory factory = spawnFactories[factoryIndex];
 
                 Tile newTile = factory.CreateTileAtPosition(x, y);
                 grid[x, y] = newTile;
             }
+        }
+
+        private bool HasNumberTile()
+        {
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (grid[i, j] is NumberTile numberTile && numberTile.Value != 0)
+                        return true;
+                }
+            }
+            return false;
         }
 
         // ============ ЛОГИКА ДВИЖЕНИЯ ============
