@@ -8,3 +8,10 @@ obj/
 *.userosscache
 
 *.log
+
+/publish/
+**/publish/
+*.exe
+*.dll
+*.zip
+*.tar.gz
